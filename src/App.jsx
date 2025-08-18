@@ -8,24 +8,20 @@ import Notfound from './pages/Notfound'
 import New from './pages/New'
 import { getEmotionImage } from './util/getEmotionImage'
 import Header from './components/Header'
+import Button from './components/Button'
 function App() {
 
 
 
   return (
     <div>
-      <Header 
-      title="header title"
-      leftChild="left child"
-      rightChild="right child"
+      <Header
+        leftChild={<Button text="left" />}
+        title="header title"
+        rightChild={<Button text="right" />}
       />
-      <div>
-        <img src={getEmotionImage(1)} alt="image" />
-        <img src={getEmotionImage(2)} alt="image" />
-        <img src={getEmotionImage(3)} alt="image" />
-        <img src={getEmotionImage(4)} alt="image" />
-        <img src={getEmotionImage(5)} alt="image" />
-      </div>
+
+
 
       <Routes>
         <Route path='/' element={<Home />} />
