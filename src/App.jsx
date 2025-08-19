@@ -1,116 +1,143 @@
-
 import './App.css'
-import { useReducer, useRef } from 'react'
-import { Routes, Route, useNavigate } from 'react-router-dom'
-import Diary from './pages/Diary'
-import Edit from './pages/Edit'
+import { useReducer, useRef, createContext, useEffect,useState } from 'react'
+import {Routes, Route} from "react-router-dom"
 import Home from './pages/Home'
-import Notfound from './pages/Notfound'
+import Diary from './pages/Diary'
 import New from './pages/New'
-import { getEmotionImage } from './util/getEmotionImage'
-import Header from './components/Header'
-import Button from './components/Button'
+import NotFound from './pages/NotFound'
+import Edit from './pages/Edit'
+import Editor from './components/Editor'
 
+function reducer(state, action){
+  let nextState;
 
-const mockData = [
-  {
-    id: 1,
-    createdDate: new Date().getTime(),
-    emotionId: 1,
-    content: "1번 일기 내용"
-  },
-  {
-    id: 2,
-    createdDate: new Date().getTime(),
-    emotionId: 2,
-    content: "2번 일기 내용"
-  }
-]
+  switch(action.type){
+    case 'INIT': {
+      return action.data;
+    }
+    case 'CREATE': {
+        nextState = [action.data, ...state];
+        break;
+    } 
+    case 'UPDATE': {
+        nextState = state.map((item) => String(item.id) === String(action.data.id) 
+                                  ? action.data 
+                                  : item
+                      );
+        break;
+    } 
 
-function reducer(state, action) {
-  switch (action.type) {
-    case "CREATE":
-      return [action.data, ...state]
-    case "UPDATE":
-      return state.map((item) =>
-        String(item.id) === String(action.data.id) ?
-          action.data
-          : item
-      )
-    case "DELETE":
-      return state.filter(
-        (item)=>String(item.id)!==String(action.id)
-      )
+    case 'DELETE': {
+        nextState = state.filter((item) => String(item.id) !== String(action.id)
+                         );   
+         break;
+    }
+                       
     default:
-      return state
+      return state;
   }
 
+  localStorage.setItem("diary",JSON.stringify(nextState));
+  return nextState;
 }
 
+export const DiaryStateContext = createContext();
+export const DiaryDispatchContext = createContext();
+
+
 function App() {
+  const [isLoading , setIsLoading] = useState(true)
+  const[data , dispatch] = useReducer(reducer,[]);
+  const idRef = useRef(0);
 
-  const [data, dispatch] = useReducer(reducer, mockData)
-  const idRef = useRef(3)
+  useEffect(() => {
+    const storedData = localStorage.getItem("diary");
 
-  const onCreate = (createdDate, emotionId, content) => {
+    console.log(storedData)
 
+    if(!storedData){
+      setIsLoading(false);
+      return;
+    }
+
+    const parsedData = JSON.parse(storedData);
+    console.log(parsedData)
+
+    if(!Array.isArray(parsedData)){
+      setIsLoading(false);
+      return;
+    }
+
+    let maxId = 0;
+    parsedData.forEach((item) =>{
+      if(Number(item.id) > maxId){
+        maxId = Number(item.id)
+      }
+    });
+
+    idRef.current = maxId + 1;
+
+    dispatch({
+      type: "INIT",
+      data: parsedData,
+    });
+    
+    setIsLoading(false);
+  },[]);
+
+  // 새로운 일기 추가
+  const onCreate = (createdDate , emotionId , content) => {
     dispatch({
       type: "CREATE",
       data: {
         id: idRef.current++,
         createdDate,
         emotionId,
-        content
-      }
-    })
+        content,
+      },
+    })    
   }
+  // 기존 일기 수정
   const onUpdate = (id, createdDate, emotionId, content) => {
-    dispatch({
-      type: "UPDATE",
-      data: {
-        id,
-        createdDate,
-        emotionId,
-        content
+    dispatch(
+      {
+        type: "UPDATE",
+        data: {
+          id, createdDate, emotionId, content
+        }
       }
-    })
+    )
   }
 
-  const onDelete=(id)=>{
+  // 기존 일기 삭제
+  const onDelete = (id) => {
     dispatch({
-      type:"DELETE",
-      id
+      type: 'DELETE',
+      id,
     })
   }
+
+  if(isLoading){
+    return <div>데이터 로딩중입니다...</div>
+  }
+
   return (
-    <div>
-      <Header
-        leftChild={<Button text="left" />}
-        title="header title"
-        rightChild={<Button text="right" />}
-      />
-
-      <button onClick={() =>
-        onCreate(new Date().getTime(), 1, "hello")}>
-        일기 추가하기
-      </button>
-      <button onClick={() =>
-        onUpdate(1,new Date().getTime(), 3, "수정된 내용")}>
-        일기 수정하기
-      </button>
-      <button onClick={() =>
-        onDelete(1)}>
-        일기 삭제하기
-      </button>
-
+    <>
+    <DiaryStateContext.Provider value={data}>
+      <DiaryDispatchContext.Provider value={{
+        onCreate, onUpdate, onDelete
+      }}>
       <Routes>
-        <Route path='/' element={<Home />} />
-        <Route path='/new' element={<New />} />
-        <Route path='/edit/:id' element={<Edit />} />
-        <Route path='/diary/:id' element={<Diary />} />
-        <Route path='*' element={<Notfound />} />
+        <Route path ="/" element={<Home />} />
+        <Route path ="/new" element={<New />} />
+        <Route path ="/diary/:id" element={<Diary />} />
+        <Route path ="/edit/:id" element={<Edit />} />
+        <Route path ="/editor" element={<Editor />} />
+        <Route path ="*" element={<NotFound />} />
       </Routes>
-    </div>
+      </DiaryDispatchContext.Provider>
+    </DiaryStateContext.Provider>  
+    </>
   )
 }
 
