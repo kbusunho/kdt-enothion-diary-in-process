@@ -1,7 +1,9 @@
-const NotFound = () =>{
-    return(
-    <div>잘못된 페이지입니다.</div>
-    )
+import React from 'react'
+
+const Notfound = () => {
+  return (
+    <div>Notfound</div>
+  )
 }
 
-export default NotFound;
+export default Notfound

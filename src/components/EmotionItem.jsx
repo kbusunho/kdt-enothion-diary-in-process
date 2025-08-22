@@ -1,18 +1,19 @@
-import './EmotionItem.css'
-import { getEmotionImage } from '../util/get-emotion-image';
+import  React from 'react'
+import "./EmotionItem.css"
+import { getEmotionImage } from '../util/getEmotionImage'
+const EmotionItem = ({emotionId,emotionName,isSelected,onClick}) => {
 
-const EmotionItem = ( { emotionId, emotionName, isSelected , onClick } ) => {
-    return (
-        <div    
-                onClick={onClick}
-                className={`EmotionItem ${isSelected ?  `EmotionItem_on_${emotionId}` 
-                                        : ""
-                                        }`}
-        >
-            <img className='emotion_img' src={getEmotionImage(emotionId)} />
-            <div className='emotion_name'>{emotionName}</div>
-        </div>
-    )
+
+  return (
+    <div 
+    onClick={onClick}
+    className={`EmotionItem
+     ${isSelected? `item_on_${emotionId}`:""}`
+     }>
+        <img src={getEmotionImage(emotionId)} alt={emotionName} />
+        <div>{emotionName}</div>
+    </div>
+  )
 }
 
-export default EmotionItem;
+export default EmotionItem
