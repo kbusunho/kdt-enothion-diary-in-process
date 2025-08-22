@@ -7,7 +7,7 @@ import Edit from './pages/Edit'
 import Home from './pages/Home'
 import Notfound from './pages/Notfound'
 import New from './pages/New'
-
+import useDiary from './hook/useDiary'
 
 
 const mockData = [
